@@ -316,7 +316,7 @@ exports.forgotPassword = catchAsync(async (req, res, next) => {
 
   const resetURL =
     process.env.NODE_ENV === "production"
-      ? `${process.env.FRONTEND_URL}/reset-password/?token=${resetToken}`
+      ? `${process.env.FRONTEND_URL}/auth-app-frontend/reset-password/?token=${resetToken}`
       : `http://localhost:5173/reset-password/?token=${resetToken}`;
 
   try {
