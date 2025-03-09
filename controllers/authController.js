@@ -32,8 +32,7 @@ const createSendToken = (user, status, res, duration) => {
     expires: new Date(Date.now() + ms(duration)),
     secure: process.env.NODE_ENV === "production",
     httpOnly: true,
-    sameSite: "None",
-    // sameSite: process.env.COOKIE_SAMESITE || "Lax"
+    sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
     path: "/",
   };
 
@@ -185,16 +184,22 @@ exports.login = catchAsync(async (req, res, next) => {
   }
 
   if (!user.isActive && !user.deactivatedAt) {
-    return next(new AppError("Please verify yor email adress", 401));
+    return res.status(400).json({
+      status: "failed",
+      message: "Please verify yor email adress",
+      email: user.email,
+      name: user.name,
+      isVerified: user.isVerified,
+    });
   }
 
   if (user.deactivatedAt) {
     return res.status(400).json({
       status: "failed",
-      message: "Your account is deactivated. Please sign up.",
+      message: "Your account is deactivated. Please sign up again",
       email: user.email,
       name: user.name,
-      isVerified: user.isVerified,
+      deactivatedAt: user.deactivatedAt,
     });
   }
 
