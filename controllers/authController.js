@@ -246,7 +246,7 @@ exports.resendEmail = catchAsync(async (req, res, next) => {
     )}/v1/auth/verify?token=${verificationToken}`;
 
     await sendEmail({
-      email: existingUser.email,
+      email: user.email,
       subject: "Confirm the activation of your account.",
       html: emailMessage.messageNewUser(user.name, verificationUrl),
     });
