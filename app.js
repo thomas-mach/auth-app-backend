@@ -18,6 +18,9 @@ app.use(
     credentials: true,
   })
 );
+app.use(morgan("dev"));
+app.use(cookieParser());
+app.use(express.json());
 
 app.set("trust proxy", 1);
 
@@ -30,10 +33,6 @@ app.use(helmet());
 // Attacchi di sniffing MIME
 // Injection di codice
 // Altri attacchi basati sugli header HTTP
-
-app.use(express.json());
-app.use(morgan("dev"));
-app.use(cookieParser());
 
 app.use(globalErrorHandling);
 
