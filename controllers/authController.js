@@ -186,10 +186,10 @@ exports.login = catchAsync(async (req, res, next) => {
     return next(new AppError("Incorect email or password", 401));
   }
 
-  if (!user.isVerified) {
+  if (user.deactivatedAt) {
     res.status(400).json({
       status: "failed",
-      message: "You need verify yor email to login",
+      message: "Your account is deactivated. Please sign up.",
       email: user.email,
       name: user.name,
       isVerified: user.isVerified,
