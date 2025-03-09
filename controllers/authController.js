@@ -170,7 +170,7 @@ exports.verifyEmail = catchAsync(async (req, res, next) => {
   await user.save({ validateBeforeSave: false });
   console.log("User verification updated:", user);
 
-  res.redirect(`${process.env.FRONTEND_URL}/signin`);
+  res.redirect(`${process.env.FRONTEND_URL}/auth-app-frontend/signin`);
 });
 
 exports.login = catchAsync(async (req, res, next) => {
