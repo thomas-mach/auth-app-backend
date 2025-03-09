@@ -307,6 +307,28 @@ exports.forgotPassword = catchAsync(async (req, res, next) => {
     return next(new AppError("There is no user with this email adress", 404));
   }
 
+  if (user.deactivatedAt) {
+    try {
+      await sendEmail({
+        email: user.email,
+        subject: `Info about your account`,
+        html: emailMessage.messageDeactivatedUser(
+          "https://thomas-mach.github.io/auth-app-frontend/signup"
+        ),
+      });
+
+      res.status(200).json({
+        status: "success",
+        message: "Please check your email.",
+      });
+    } catch (err) {
+      return next(
+        new AppError("There was an error sending emial try again later!"),
+        500
+      );
+    }
+  }
+
   const resetToken = user.createResetPasswordToken();
   await user.save({ validateBeforeSave: false });
 
