@@ -32,7 +32,7 @@ const createSendToken = (user, status, res, duration) => {
     expires: new Date(Date.now() + ms(duration)),
     secure: process.env.NODE_ENV === "production",
     httpOnly: true,
-    sameSite: "Lax",
+    sameSite: "None",
     // sameSite: process.env.COOKIE_SAMESITE || "Lax"
     path: "/",
   };
