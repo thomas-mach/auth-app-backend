@@ -57,8 +57,6 @@ const createSendToken = (user, status, res, duration) => {
 
 exports.signup = catchAsync(async (req, res, next) => {
   const { name, email, password, passwordConfirm } = req.body;
-  console.log("REQ BODY", req.body);
-
   const existingUser = await User.findOne({ email });
 
   if (existingUser) {
@@ -187,17 +185,19 @@ exports.login = catchAsync(async (req, res, next) => {
   }
 
   if (user.deactivatedAt) {
-    res.status(400).json({
+    return res.status(400).json({
       status: "failed",
       message: "Your account is deactivated. Please sign up.",
       email: user.email,
       name: user.name,
       isVerified: user.isVerified,
     });
+  }
 
-    if (!user.isActive) {
-      return next(new AppError("Your account is deactivated", 401));
-    }
+  if (!user.isActive) {
+    return next(
+      new AppError("Your account is not verified  or deactivated", 401)
+    );
   }
 
   user.lastLogin = Date.now();
