@@ -131,32 +131,25 @@ exports.signup = catchAsync(async (req, res, next) => {
 
 exports.verifyEmail = catchAsync(async (req, res, next) => {
   const { token } = req.query;
-  console.log("Received token:", token);
 
   if (!token) {
-    console.log("Error: Missing token");
     return next(new AppError("Missing token", 400));
   }
 
   let decoded;
   try {
     decoded = jwt.verify(token, process.env.JWT_SECRET);
-    console.log("Decoded token:", decoded);
   } catch (err) {
-    console.log("Error: Invalid or expired token", err);
     return next(new AppError("Invalid or expired token", 400));
   }
 
   const user = await User.findById(decoded.id);
-  console.log("User found:", user);
 
   if (!user) {
-    console.log("Error: User not found");
     return next(new AppError("User not found", 400));
   }
 
   if (user.isVerified) {
-    console.log("Error: Email already verified");
     return next(new AppError("Email already verified!", 400));
   }
 
@@ -165,7 +158,6 @@ exports.verifyEmail = catchAsync(async (req, res, next) => {
   user.deactivatedAt = null;
 
   await user.save({ validateBeforeSave: false });
-  console.log("User verification updated:", user);
 
   res.redirect(`${process.env.FRONTEND_URL}/auth-app-frontend/signin`);
 });
@@ -263,7 +255,7 @@ exports.resendEmail = catchAsync(async (req, res, next) => {
 
 exports.protect = catchAsync(async (req, res, next) => {
   let token;
-  console.log(req.cookies);
+
   if (req.cookies.jwt) {
     token = req.cookies.jwt;
   } else if (
@@ -272,14 +264,12 @@ exports.protect = catchAsync(async (req, res, next) => {
   ) {
     token = req.headers.authorization.split(" ")[1];
   }
-  console.log("TOKEN", token);
+
   if (!token) {
     return next(new AppError("You must be logged in to access!", 401));
   }
 
-  console.log("Token ricevuto:", token);
   const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
-  console.log("Decoded Token:", decoded);
 
   const user = await User.findById(decoded.id);
   if (!user || !user.isActive) {
@@ -393,7 +383,6 @@ exports.resetPassword = catchAsync(async (req, res, next) => {
 
 exports.updatePassword = catchAsync(async (req, res, next) => {
   const user = await User.findById(req.user.id).select("+password");
-  console.log("User found:", user);
 
   if (!(await user.correctPassword(req.body.password, user.password))) {
     return next(new AppError("Your current password is wrong", 401));

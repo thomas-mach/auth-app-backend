@@ -8,13 +8,12 @@ const sendEmail = async (options) => {
     //   user: process.env.EMAIL_USERNAME,
     //   pass: process.env.EMAIL_PASSWORD,
     // },
-    service: "gmail", // Usa Gmail come server SMTP
+    service: "gmail", //Gmail server SMTP
     auth: {
       user: "m4chtomasz@gmail.com",
       pass: process.env.GMAIL_PASSWORD,
     },
   });
-  console.log("TRANSPORTER = ", transporter);
 
   const mailOptions = {
     from: "Thomas Mach <m4chtomasz@gmail.com>",
@@ -27,8 +26,6 @@ const sendEmail = async (options) => {
   };
 
   await transporter.sendMail(mailOptions);
-  //   const info = await transporter.sendMail(mailOptions);
-  //   console.log("Email sent successfully:", info);
 };
 
 module.exports = sendEmail;

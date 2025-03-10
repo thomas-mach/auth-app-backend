@@ -5,19 +5,13 @@ const dotenv = require("dotenv");
 
 dotenv.config();
 
-const DB = process.env.DATABASE.replace(
-  "<PASSWORD>",
-  process.env.DATABASE_PASSWORD
-);
+mongoose.connect(process.env.DATABASE);
 
-mongoose.connect(DB);
-
-// Job: elimina utenti disattivati da più di 30 giorni
 cron.schedule("0 0 * * *", async () => {
-  console.log("🔄 Controllo utenti disattivati...");
+  console.log("🔄 Checking for deactivated users...");
 
   const thirtyDaysAgo = new Date();
-  thirtyDaysAgo.setDate(thirtyDaysAgo.getDay() - 30);
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
   try {
     const result = await User.deleteMany({
@@ -26,11 +20,11 @@ cron.schedule("0 0 * * *", async () => {
     });
 
     console.log(
-      `🗑️ Eliminati ${result.deletedCount} utenti disattivati da più di 30 giorni`
+      `🗑️ Deleted ${result.deletedCount} users deactivated for more than 30 days`
     );
   } catch (error) {
-    console.error("❌ Errore nella cancellazione utenti:", error);
+    console.error("❌ Error deleting users:", error);
   }
 });
 
-console.log("✅ Cron job per eliminazione utenti avviato...");
+console.log("✅ Cron job for user deletion started...");
