@@ -28,6 +28,8 @@ router.patch(
   authController.protect,
   authController.updatePassword
 );
+router.get("/avatars", authController.getAvatars);
+router.get("/avatars/:avatar", authController.getAvatar);
 
 module.exports = router;
 

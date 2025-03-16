@@ -1,6 +1,7 @@
 const express = require("express");
 const userRouter = require("./routes/userRoutes");
 const authRouter = require("./routes/authRoutes");
+const commentRouter = require("./routes/commentRoutes");
 const morgan = require("morgan");
 const globalErrorHandling = require("./controllers/errorController");
 const cookieParser = require("cookie-parser");
@@ -18,6 +19,7 @@ app.use(
     credentials: true,
   })
 );
+app.use("/avatars", express.static("public/avatars"));
 app.use(morgan("dev"));
 app.use(cookieParser());
 app.use(express.json());
@@ -26,6 +28,7 @@ app.set("trust proxy", 1);
 
 app.use("/v1/auth", authRouter);
 app.use("/v1/users", userRouter);
+app.use("/v1/comments", commentRouter);
 
 app.use(helmet());
 //contro atacchi basati sul headers Cross-Site Scripting (XSS)

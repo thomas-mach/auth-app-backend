@@ -7,6 +7,8 @@ const sendEmail = require("../utils/email");
 const { promisify } = require("util");
 const ms = require("ms");
 const emailMessage = require("../utils/emailMessages");
+const fs = require("fs");
+const path = require("path");
 
 const signToken = (id, duration) =>
   jwt.sign({ id }, process.env.JWT_SECRET, {
@@ -20,10 +22,11 @@ const createSendToken = (user, status, res, duration) => {
     role,
     isVerified,
     isActive,
-    profileImage,
+    avatar,
     lastLogin,
     createdAt,
     updatedAt,
+    comments,
   } = user;
 
   const token = signToken(user._id, duration);
@@ -46,16 +49,17 @@ const createSendToken = (user, status, res, duration) => {
       role,
       isVerified,
       isActive,
-      profileImage,
+      avatar,
       lastLogin,
       createdAt,
       updatedAt,
+      comments,
     },
   });
 };
 
 exports.signup = catchAsync(async (req, res, next) => {
-  const { name, email, password, passwordConfirm } = req.body;
+  const { name, email, password, passwordConfirm, avatar } = req.body;
   const existingUser = await User.findOne({ email });
 
   if (existingUser) {
@@ -97,6 +101,7 @@ exports.signup = catchAsync(async (req, res, next) => {
     password,
     passwordConfirm,
     isVerified: false,
+    avatar: avatar || "/avatars/avatar_1.png",
   });
 
   // Genera un token di verifica
@@ -197,6 +202,7 @@ exports.login = catchAsync(async (req, res, next) => {
 
   user.lastLogin = Date.now();
   await user.save({ validateBeforeSave: false });
+  await user.populate({ path: "comments", select: "comment -user" });
   createSendToken(user, 201, res, "7d");
 });
 
@@ -398,4 +404,37 @@ exports.updatePassword = catchAsync(async (req, res, next) => {
   user.passwordConfirm = req.body.passwordConfirm;
   await user.save();
   createSendToken(user, 200, res, "7d");
+});
+
+exports.getAvatars = catchAsync(async (req, res, next) => {
+  try {
+    const avatarDir = path.join(__dirname, "../public/avatars"); // Assicurati che il percorso sia corretto
+    const files = await fs.promises.readdir(avatarDir);
+
+    if (!files || files.length === 0) {
+      return next(new AppError("No avatars found", 404));
+    }
+
+    const avatarUrls = files.map((file) => `${file}`);
+
+    res.status(200).json({ success: true, avatars: avatarUrls });
+  } catch (error) {
+    return next(new AppError("Impossible to read avatars", 500));
+  }
+});
+
+exports.getAvatar = catchAsync(async (req, res, next) => {
+  try {
+    const avatarName = req.params.avatar;
+    const avatarDir = path.join(__dirname, "../public/avatars");
+    const avatarPath = path.join(avatarDir, avatarName);
+
+    if (!fs.existsSync(avatarPath)) {
+      return next(new AppError("Avatar not found", 404));
+    }
+
+    res.sendFile(avatarPath);
+  } catch (error) {
+    return next(new AppError("Unable to retrieve avatar", 500));
+  }
 });

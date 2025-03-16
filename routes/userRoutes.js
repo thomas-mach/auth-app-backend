@@ -4,7 +4,12 @@ const authController = require("../controllers/authController");
 
 const router = express.Router();
 
-// router.get("/", userContrroller.getAllUsers);
+router.get("/", userContrroller.getAllUsers);
+router.get(
+  "/myComments",
+  authController.protect,
+  userContrroller.getUserComments
+);
 
 router.patch(
   "/deleteMe",

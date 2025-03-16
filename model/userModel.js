@@ -62,20 +62,23 @@ const userSchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
-    profileImage: {
+    avatar: {
       type: String,
-      default: null,
     },
     passwordChangedAt: Date,
     passwordResetToken: String,
     passwordResetExpires: Date,
+  },
+  {
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true },
   },
   { timestamps: true }
 );
 
 userSchema.pre("save", async function (next) {
   if (!this.isModified("password")) return next();
-  this.password = await bcrypt.hash(this.password, 12);
+  this.password = await bcrypt.hash(this.password, 10);
   this.userCreatedAt = Date.now() - 1000;
   this.passwordConfirm = undefined;
   next();
@@ -109,6 +112,12 @@ userSchema.methods.changedPasswordAfter = function (JWTTimestamp) {
   }
   return false;
 };
+
+userSchema.virtual("comments", {
+  ref: "Comment",
+  localField: "_id",
+  foreignField: "user",
+});
 
 const User = mongoose.model("User", userSchema);
 
