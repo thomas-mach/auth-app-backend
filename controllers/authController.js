@@ -7,6 +7,8 @@ const sendEmail = require("../utils/email");
 const { promisify } = require("util");
 const ms = require("ms");
 const emailMessage = require("../utils/emailMessages");
+const path = require("path");
+const fs = require("fs");
 
 const signToken = (id, duration) =>
   jwt.sign({ id }, process.env.JWT_SECRET, {
@@ -24,6 +26,7 @@ const createSendToken = (user, status, res, duration) => {
     lastLogin,
     createdAt,
     updatedAt,
+    avatar,
   } = user;
 
   const token = signToken(user._id, duration);
@@ -50,12 +53,13 @@ const createSendToken = (user, status, res, duration) => {
       lastLogin,
       createdAt,
       updatedAt,
+      avatar,
     },
   });
 };
 
 exports.signup = catchAsync(async (req, res, next) => {
-  const { name, email, password, passwordConfirm } = req.body;
+  const { name, email, password, passwordConfirm, avatar } = req.body;
   const existingUser = await User.findOne({ email });
 
   if (existingUser) {
@@ -63,6 +67,7 @@ exports.signup = catchAsync(async (req, res, next) => {
       existingUser.password = password;
       existingUser.passwordConfirm = passwordConfirm;
       existingUser.name = name;
+      existingUser.avatar = avatar;
       await existingUser.save({ validateBeforeSave: false });
 
       const verificationToken = signToken(existingUser._id, "1h");
@@ -96,6 +101,7 @@ exports.signup = catchAsync(async (req, res, next) => {
     email,
     password,
     passwordConfirm,
+    avatar,
     isVerified: false,
   });
 
@@ -398,4 +404,15 @@ exports.updatePassword = catchAsync(async (req, res, next) => {
   user.passwordConfirm = req.body.passwordConfirm;
   await user.save();
   createSendToken(user, 200, res, "7d");
+});
+
+exports.getAvatars = catchAsync(async (req, res, next) => {
+  const avatarsDir = path.join(__dirname, "../public/avatars");
+
+  fs.readdir(avatarsDir, (err, files) => {
+    if (err) {
+      return next(err);
+    }
+    res.json({ avatars: files });
+  });
 });

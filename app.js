@@ -6,6 +6,7 @@ const globalErrorHandling = require("./controllers/errorController");
 const cookieParser = require("cookie-parser");
 const helmet = require("helmet");
 const cors = require("cors");
+const path = require("path");
 
 require("./jobs/deleteOldUsers");
 
@@ -21,11 +22,16 @@ app.use(
 app.use(morgan("dev"));
 app.use(cookieParser());
 app.use(express.json());
-
-app.set("trust proxy", 1);
-
-app.use("/v1/auth", authRouter);
-app.use("/v1/users", userRouter);
+app.use(
+  "/avatars",
+  express.static(path.join(__dirname, "public/avatars"), {
+    maxAge: "1d",
+    etag: true,
+    setHeaders: (res, path) => {
+      res.setHeader("Cache-Control", "public, max-age=86400"); // Imposta correttamente la cache
+    },
+  })
+);
 
 app.use(helmet());
 //contro atacchi basati sul headers Cross-Site Scripting (XSS)
@@ -33,6 +39,15 @@ app.use(helmet());
 // Attacchi di sniffing MIME
 // Injection di codice
 // Altri attacchi basati sugli header HTTP
+
+// app.get("/test-avatar", (req, res) => {
+//   res.sendFile(path.join(__dirname, "public/avatars/avatar_1.png"));
+// });
+
+app.set("trust proxy", 1);
+
+app.use("/v1/auth", authRouter);
+app.use("/v1/users", userRouter);
 
 app.use(globalErrorHandling);
 

@@ -16,8 +16,9 @@ const authLimiter = limiter({
   },
 });
 
-router.post("/signup", authLimiter, authController.signup);
+router.get("/avatars", authController.getAvatars);
 router.get("/verify", authLimiter, authController.verifyEmail);
+router.post("/signup", authLimiter, authController.signup);
 router.post("/login", authLimiter, authController.login);
 router.post("/logout", authController.logout);
 router.post("/resendEmail", authLimiter, authController.resendEmail);
