@@ -271,6 +271,8 @@ exports.protect = catchAsync(async (req, res, next) => {
     token = req.headers.authorization.split(" ")[1];
   }
 
+  console.log("token from protec", token);
+
   if (!token) {
     return next(new AppError("You must be logged in to access!", 401));
   }
@@ -415,4 +417,15 @@ exports.getAvatars = catchAsync(async (req, res, next) => {
     }
     res.json({ avatars: files });
   });
+});
+
+exports.getJWT = catchAsync(async (req, res, next) => {
+  const JWT = req.cookies.jwt;
+
+  console.log("JWT", JWT);
+  if (!JWT) {
+    return new AppError("Unauthorized from get JWT", 401);
+  }
+
+  res.json({ JWT });
 });
