@@ -19,7 +19,6 @@ const io = new Server(server, {
 
 // Middleware per autenticazione con JWT
 io.use(socketAuth);
-
 socketController(io);
 
 const PORT = process.env.PORT || 3003;

@@ -1,5 +1,6 @@
 const crypto = require("crypto");
 const User = require("../model/userModel");
+const Blacklist = require("../model/blacklistModel");
 const catchAsync = require("../utils/catchAsync");
 const AppError = require("../utils/appError");
 const jwt = require("jsonwebtoken");
@@ -33,8 +34,8 @@ const createSendToken = (user, status, res, duration) => {
 
   const cookieOptions = {
     expires: new Date(Date.now() + ms(duration)),
-    secure: process.env.NODE_ENV === "production",
     httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
     sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
     path: "/",
   };
@@ -212,20 +213,32 @@ exports.login = catchAsync(async (req, res, next) => {
 //     .cookie("jwt", "loggedout", {
 //       expires: new Date(Date.now() + 10 * 1000),
 //       httpOnly: true,
+//       secure: process.env.NODE_ENV === "production",
+//       sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
+//       path: "/",
 //     })
-//     .json({ status: "success", message: "You are logged out" });
+//     .json({ status: "success", message: "You are logged outtt" });
 // };
 
-exports.logout = (req, res) => {
+exports.logout = catchAsync(async (req, res, next) => {
+  const token = req.cookies.jwt; // Prendi il token dal cookie
+  console.log("Cookies presenti nella richiesta logout:", req.cookies);
+  if (token) {
+    const decoded = jwt.decode(token);
+    const expiration = new Date(decoded.exp * 1000); // Converti exp in timestamp
+
+    await Blacklist.create({ token: token, expiresAt: expiration }); // Salva nel DB
+  }
+
   res.clearCookie("jwt", {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
-    sameSite: "None",
+    sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
     path: "/",
   });
 
   res.status(200).json({ status: "success", message: "You are logged out" });
-};
+});
 
 exports.resendEmail = catchAsync(async (req, res, next) => {
   const { email, password } = req.body;
@@ -264,6 +277,7 @@ exports.protect = catchAsync(async (req, res, next) => {
 
   if (req.cookies.jwt) {
     token = req.cookies.jwt;
+    console.log("Cookies presenti nella richiesta:", req.cookies);
   } else if (
     req.headers.authorization &&
     req.headers.authorization.startsWith("Bearer")
