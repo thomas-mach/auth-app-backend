@@ -1,17 +1,7 @@
 const User = require("../model/userModel");
+const Comment = require("../model/commentModel");
+const Message = require("../model/messageModel");
 const catchAsync = require("../utils/catchAsync");
-
-// exports.getAllUsers = catchAsync(async (req, res, next) => {
-//   const users = await User.find();
-
-//   res.status(200).json({
-//     data: {
-//       users: users,
-//     },
-//     status: "success",
-//     message: "Get all users rout",
-//   });
-// });
 
 exports.softDeleteUser = catchAsync(async (req, res, next) => {
   const user = await User.findByIdAndUpdate(
@@ -23,6 +13,9 @@ exports.softDeleteUser = catchAsync(async (req, res, next) => {
   if (!user) {
     next(new AppError("Utente non trovato", 404));
   }
+
+  await Comment.deleteMany({ author: req.user.id });
+  await Message.deleteMany({ sender: req.user.id });
 
   // Disconnetti l'utente cancellando il cookie JWT
   res.cookie("jwt", "loggedout", {

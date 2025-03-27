@@ -1,10 +1,9 @@
 const http = require("http");
 const { Server } = require("socket.io");
-const jwt = require("jsonwebtoken");
 const mongoose = require("mongoose");
 const dotenv = require("dotenv");
 const { socketController } = require("./controllers/socketController");
-const socketAuth = require("./middlewares/socketAuth"); // Importa il middleware
+const socketAuth = require("./middlewares/socketAuth");
 
 dotenv.config();
 const app = require("./app");

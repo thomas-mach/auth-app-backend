@@ -1,6 +1,7 @@
 const express = require("express");
 const userRouter = require("./routes/userRoutes");
 const authRouter = require("./routes/authRoutes");
+const messageRouter = require("./routes/messageRoutes");
 const commentRouter = require("./routes/commentRoutes");
 const morgan = require("morgan");
 const globalErrorHandling = require("./controllers/errorController");
@@ -41,16 +42,12 @@ app.use(helmet());
 // Injection di codice
 // Altri attacchi basati sugli header HTTP
 
-// app.get("/test-avatar", (req, res) => {
-//   res.sendFile(path.join(__dirname, "public/avatars/avatar_1.png"));
-// });
-
 app.set("trust proxy", 1);
 
 app.use("/v1/auth", authRouter);
 app.use("/v1/users", userRouter);
 app.use("/v1/comments", commentRouter);
-
+app.use("/v1/messages", messageRouter);
 app.use(globalErrorHandling);
 
 module.exports = app;

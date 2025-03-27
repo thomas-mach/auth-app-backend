@@ -92,11 +92,9 @@ exports.signup = catchAsync(async (req, res, next) => {
       });
     }
 
-    // Se l'utente esiste ed è attivo, blocca la registrazione
     return next(new AppError("Email already in use!", 400));
   }
 
-  // Crea utente con stato "non verificato"
   const newUser = await User.create({
     name,
     email,
@@ -105,16 +103,11 @@ exports.signup = catchAsync(async (req, res, next) => {
     avatar,
     isVerified: false,
   });
-
-  // Genera un token di verifica
   const verificationToken = signToken(newUser._id, "1h");
-
-  // Crea il link di verifica
   const verificationUrl = `${req.protocol}://${req.get(
     "host"
   )}/v1/auth/verify?token=${verificationToken}`;
 
-  // Invia l'email di conferma
   try {
     await sendEmail({
       email: newUser.email,
@@ -207,27 +200,18 @@ exports.login = catchAsync(async (req, res, next) => {
   createSendToken(user, 201, res, "7d");
 });
 
-// exports.logout = (req, res) => {
-//   res
-//     .status(200)
-//     .cookie("jwt", "loggedout", {
-//       expires: new Date(Date.now() + 10 * 1000),
-//       httpOnly: true,
-//       secure: process.env.NODE_ENV === "production",
-//       sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
-//       path: "/",
-//     })
-//     .json({ status: "success", message: "You are logged outtt" });
-// };
-
 exports.logout = catchAsync(async (req, res, next) => {
   const token = req.cookies.jwt; // Prendi il token dal cookie
-  console.log("Cookies presenti nella richiesta logout:", req.cookies);
-  if (token) {
-    const decoded = jwt.decode(token);
-    const expiration = new Date(decoded.exp * 1000); // Converti exp in timestamp
 
-    await Blacklist.create({ token: token, expiresAt: expiration }); // Salva nel DB
+  if (token) {
+    try {
+      const decoded = jwt.decode(token);
+      const expiration = new Date(decoded.exp * 1000);
+
+      await Blacklist.create({ token: token, expiresAt: expiration });
+    } catch (error) {
+      console.error("Errore decodifica JWT:", error);
+    }
   }
 
   res.clearCookie("jwt", {
@@ -277,15 +261,12 @@ exports.protect = catchAsync(async (req, res, next) => {
 
   if (req.cookies.jwt) {
     token = req.cookies.jwt;
-    console.log("Cookies presenti nella richiesta:", req.cookies);
   } else if (
     req.headers.authorization &&
     req.headers.authorization.startsWith("Bearer")
   ) {
     token = req.headers.authorization.split(" ")[1];
   }
-
-  console.log("token from protec", token);
 
   if (!token) {
     return next(new AppError("You must be logged in to access!", 401));
@@ -346,10 +327,6 @@ exports.forgotPassword = catchAsync(async (req, res, next) => {
 
   const resetToken = user.createResetPasswordToken();
   await user.save({ validateBeforeSave: false });
-
-  // const resetURL = `${req.protocol}://${req.get(
-  //   "host"
-  // )}/v1/auth/resetPassword/${resetToken}`;
 
   const resetURL =
     process.env.NODE_ENV === "production"
@@ -431,15 +408,4 @@ exports.getAvatars = catchAsync(async (req, res, next) => {
     }
     res.json({ avatars: files });
   });
-});
-
-exports.getJWT = catchAsync(async (req, res, next) => {
-  const JWT = req.cookies.jwt;
-
-  console.log("JWT", JWT);
-  if (!JWT) {
-    return new AppError("Unauthorized from get JWT", 401);
-  }
-
-  res.json({ JWT });
 });

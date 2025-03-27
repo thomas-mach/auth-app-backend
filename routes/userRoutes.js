@@ -5,8 +5,6 @@ const commentController = require("../controllers/commentController");
 
 const router = express.Router();
 
-// router.get("/", userContrroller.getAllUsers);
-
 router.patch(
   "/deleteMe",
   authController.protect,

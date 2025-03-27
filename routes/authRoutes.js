@@ -29,7 +29,6 @@ router.patch(
   authController.protect,
   authController.updatePassword
 );
-router.get("/jwt", authController.protect, authController.getJWT);
 
 module.exports = router;
 

@@ -5,7 +5,7 @@ const AppError = require("../utils/appError");
 exports.createComment = catchAsync(async (req, res, next) => {
   const { content } = req.body;
 
-  const maxComment = 113;
+  const maxComment = 3;
   const commentCount = await Comment.countDocuments({ author: req.user._id });
   if (commentCount >= maxComment) {
     return next(
@@ -29,9 +29,7 @@ exports.createComment = catchAsync(async (req, res, next) => {
 
 exports.getAllUserComments = catchAsync(async (req, res, next) => {
   const userId = req.user.id;
-  console.log("User ID form protect", userId);
   const comments = await Comment.find({ author: userId });
-  console.log("comments", comments);
   if (!comments) {
     res.status(404).json({
       status: "fail",
@@ -91,9 +89,6 @@ exports.deleteComment = catchAsync(async (req, res, next) => {
       message: "Comment not found",
     });
   }
-
-  console.log(comment.author);
-  console.log("user", req.user.id);
 
   if (comment.author.toString() !== req.user.id.toString()) {
     return res.status(403).json({
