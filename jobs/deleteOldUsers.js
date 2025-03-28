@@ -29,21 +29,26 @@ cron.schedule("0 0 * * *", async () => {
 });
 
 cron.schedule("0 0 * * *", async () => {
-  console.log("🔄 Delete yesterday chat");
+  console.log("🔄 Delete yesterday's messages");
 
-  const yesterday = new Date();
-  yesterday.setDate(yesterday.getDate() - 1);
+  // Calcola l'inizio del giorno precedente (00:00:00)
+  const yesterdayStart = new Date();
+  yesterdayStart.setDate(yesterdayStart.getDate() - 1);
+  yesterdayStart.setHours(0, 0, 0, 0);
+
+  // Calcola la fine del giorno precedente (23:59:59)
+  const yesterdayEnd = new Date();
+  yesterdayEnd.setDate(yesterdayEnd.getDate() - 1);
+  yesterdayEnd.setHours(23, 59, 59, 999);
 
   try {
     const result = await Message.deleteMany({
-      createdAt: { $lt: yesterday },
+      createdAt: { $gte: yesterdayStart, $lte: yesterdayEnd },
     });
 
-    console.log(
-      `🗑️ Deleted ${result.deletedCount} messages for more than 1 days`
-    );
+    console.log(`🗑️ Deleted ${result.deletedCount} messages from yesterday`);
   } catch (error) {
-    console.error("❌ Error sending daily reminders:", error);
+    console.error("❌ Error deleting messages:", error);
   }
 });
 
